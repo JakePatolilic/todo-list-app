@@ -247,6 +247,26 @@ watch(() => editForm.value.start, (newStart) => {
     }
 });
 
+function isOverdue(dueDate) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // reset to midnight
+
+  const taskDate = new Date(dueDate);
+  taskDate.setHours(0, 0, 0, 0); // reset to midnight
+
+  return taskDate < today;
+}
+
+function isToday(dueDate) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const taskDate = new Date(dueDate);
+  taskDate.setHours(0, 0, 0, 0);
+
+  return taskDate.getTime() === today.getTime();
+}
+
 </script>
 
 <template>
@@ -318,7 +338,7 @@ watch(() => editForm.value.start, (newStart) => {
                         class="group relative overflow-hidden rounded-xl bg-white shadow-sm border border-gray-100 hover:shadow-lg hover:border-gray-200 transition-all duration-200 hover:-translate-y-1"
                     >
                         <div class="absolute top-0 right-0 w-3 h-3 m-4 rounded-full" 
-                            :class="task.is_completed ? 'bg-green-400' : (new Date(task.due_date) < new Date() ? 'bg-red-400' : 'bg-orange-400')">
+                            :class="task.is_completed ? 'bg-green-400' : (isOverdue(task.due_date) ? 'bg-red-400' : 'bg-orange-400')">
                         </div>
                         
                         <div class="p-6 space-y-4">
@@ -359,7 +379,7 @@ watch(() => editForm.value.start, (newStart) => {
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                     </svg>
                                     <span class="font-medium">Due:</span>
-                                    <span :class="new Date(task.due_date) < new Date() && !task.is_completed ? 'text-red-600 font-medium' : ''">
+                                    <span :class="isOverdue(task.due_date) && !task.is_completed ? 'text-red-600 font-medium' : ''">
                                         {{ new Date(task.due_date).toLocaleDateString('en-US', { 
                                             month: 'short', 
                                             day: 'numeric',
@@ -370,21 +390,25 @@ watch(() => editForm.value.start, (newStart) => {
                             </div>
                             
                             <div class="pt-3 border-t border-gray-50">
-                                <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium"
+                                <span
+                                    class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium"
                                     :class="task.is_completed
                                     ? 'bg-green-50 text-green-700 border border-green-100'
-                                    : (new Date(task.due_date) < new Date()
-                                    ? 'bg-red-50 text-red-700 border border-red-100'
-                                : 'bg-orange-50 text-orange-700 border border-orange-100')">
-                                    <div class="w-2 h-2 rounded-full" 
-                                        :class="task.is_completed 
-                                            ? 'bg-green-400' 
-                                            : (new Date(task.due_date) < new Date() 
-                                            ? 'bg-red-400' 
-                                    : 'bg-orange-400')">
-                                    </div>
+                                    : (isOverdue(task.due_date)
+                                        ? 'bg-red-50 text-red-700 border border-red-100'
+                                        : 'bg-orange-50 text-orange-700 border border-orange-100')"
+                                >
+                                    <div
+                                    class="w-2 h-2 rounded-full"
+                                    :class="task.is_completed
+                                        ? 'bg-green-400'
+                                        : (isOverdue(task.due_date)
+                                            ? 'bg-red-400'
+                                            : 'bg-orange-400')"
+                                    ></div>
+
                                     <span v-if="task.is_completed">Completed</span>
-                                    <span v-else-if="new Date(task.due_date) < new Date()">Overdue</span>
+                                    <span v-else-if="isOverdue(task.due_date)">Overdue</span>
                                     <span v-else>In Progress</span>
                                 </span>
                             </div>
